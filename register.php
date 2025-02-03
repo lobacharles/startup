@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $sql = "INSERT INTO users (username, password) VALUES ('$username', '$hashed_password')";
         if ($conn->query($sql) === TRUE) {
-            echo "Registration successful! <a href='login.php'>Login here</a>";
+            echo "Registration successful! <a href='login.html'>Login here</a>";
         } else {
             if ($conn->errno == 1062) { 
                 echo "Username already exists. Please choose a different username.";
