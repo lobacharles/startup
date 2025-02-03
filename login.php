@@ -1,45 +1,35 @@
 <?php
-session_start(); // Start the session
+session_start();
 include 'db.php';
+
+header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
     if (empty($username) || empty($password)) {
-        echo "Please fill in all fields.";
-    } else {
-        $sql = "SELECT * FROM users WHERE username = '$username'";
-        $result = $conn->query($sql);
+        echo json_encode(["success" => false, "error" => "Please fill in all fields."]);
+        exit();
+    }
 
-        if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['username'] = $username; 
-                $_SESSION['user_id'] = $user['id']; 
-                header("Location: dashboard.php");
-            } else {
-                echo "Invalid username or password.";
-            }
+    $sql = "SELECT * FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['username'] = $username;
+            $_SESSION['user_id'] = $user['id'];
+            echo json_encode(["success" => true]);
         } else {
-            echo "Invalid username or password.";
+            echo json_encode(["success" => false, "error" => "Invalid username or password."]);
         }
+    } else {
+        echo json_encode(["success" => false, "error" => "Invalid username or password."]);
     }
 }
 ?>
-
-<!DOCTYPE html>
-<html>
-
-<body>
-    <form method="POST" action="">
-        <h2>Login</h2>
-        <label for="username">Username:</label>
-        <input type="text" name="username" required><br><br>
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br><br>
-        <button type="submit">Login</button>
-        <p>Don't have an account? <a href="register.php">Register here</a></p>
-    </form>
-</body>
-</html>
